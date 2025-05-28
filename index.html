@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TODO</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            font-family: sans-serif;
+        }
+
+        body,
+        ul {
+            margin: 0;
+            padding: 0;
+        }
+
+        ul {
+            list-style: none;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        h1,
+        h2 {
+            margin: 0;
+            padding: 0;
+        }
+
+        li {
+            width: 100%;
+            gap: .5rem;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        h1 {
+            font-weight: 600;
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #0b65f5;
+        }
+
+        h2 {
+            font-size: 1.25rem;
+            text-align: left;
+        }
+
+        .clr-success {
+            color: #106e1b;
+        }
+
+        .clr-warn {
+            color: #f2d321;
+        }
+
+        body {
+            background-color: #aae7ea;
+            display: flex;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            width: 50rem;
+            margin: 0 auto;
+        }
+
+        .todo-wrapper {
+            padding: 2rem;
+            box-shadow: 0px 10px 15px rgba(38, 179, 167, 0.776);
+            background-color: #fff;
+            border-radius: .25rem;
+            text-align: center;
+        }
+
+        input[type='text'] {
+            border: 1px solid #cbcbcb;
+            padding: .8rem;
+            border-radius: .15rem;
+            font-size: 1rem;
+        }
+
+        .btn {
+            border: 1px solid transparent;
+            font-size: 1rem;
+            padding: .8rem;
+            border-radius: .15rem;
+            cursor: pointer;
+        }
+
+        input[type='text']:focus {
+            border-color: #aae7ea;
+            box-shadow: 0px 0px 5px #aae7ea;
+            outline: none;
+        }
+
+        input:disabled {
+            border: none;
+            padding: 0;
+            background-color: transparent;
+            color: #000;
+            font-weight: 600;
+            font-size: 1.25rem;
+        }
+
+        .btn--primary {
+            background-color: #0b65f5;
+            color: #fff;
+            border-color: #0b65f5;
+        }
+
+        .btn--danger {
+            background-color: #b20909;
+            color: #fff;
+            border-color: #b20909;
+        }
+
+        .btn--danger:hover {
+            background-color: #fff;
+            color: #b20909;
+            transition: all .5s ease-in-out;
+        }
+
+        .btn--warn {
+            color: #fff;
+            background-color: #f2d321;
+            border-color: #f2d321;
+        }
+
+        .btn--success {
+            color: #fff;
+            background-color: #106e1b;
+            border-color: #106e1b;
+        }
+
+        .btn--success:hover {
+            color: #106e1b;
+            background-color: #fff;
+            transition: all .5s ease-in-out;
+        }
+
+        .btn--warn:hover {
+            color: #f2d321;
+            background-color: #fff;
+            transition: all .5s ease-in-out;
+        }
+
+        .btn--primary:hover {
+            transition: all .5s ease-in-out;
+            background-color: #fff;
+            color: #0b65f5;
+        }
+
+        #pendingTask button,
+        #completedTask button {
+            padding: .5rem;
+        }
+
+        .timestamp {
+            font-size: .9rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="todo-wrapper">
+            <h1>TODO</h1>
+            <div id="todo">
+                <input type="text" placeholder="Add your task" id="todoInput" required>
+                <button class="btn btn--primary" id="addTaskButton">Add</button>
+            </div>
+            <div id="todoList">
+                <h2 class="clr-warn">Pending Task</h2>
+                <ul id="pendingTask"></ul>
+                <h2 class="clr-success">Completed Task</h2>
+                <ul id="completedTask"></ul>
+            </div>
+        </div>
+    </div>
+    <script>
+        // Array of Questions.
+        const quizQuestions = [{
+            id: 1,
+            question: 'What is the output of the following code? console.log(typeof null)',
+            options: ['object', 'null', 'undefined', 'boolean'],
+            answer: 'object'
+        },
+        {
+            id: 2,
+            question: 'Which method is used to merge two or more arrays?',
+            options: ['Array.merge', 'Array.concat()', 'Array.join()', 'Array.add()'],
+            answer: 'Array.concat()'
+        },
+        {
+            id: 3,
+            question: 'Which method is used to add an element to the end of an array? ',
+            options: ['shift()', 'unshift()', 'push()', 'pop()'],
+            answer: 'push()'
+        },
+        {
+            id: 4,
+            question: 'What is the result of the expression 5 + 5 + "5"',
+            options: ['15', 'Error', '10undefined', '105'],
+            answer: '105'
+        }
+        ];
+
+        const answeredQuestions = {}; // Used to store the answered questions.
+
+        // Getting all HTML elements.
+        const quizContainer = document.getElementById('quiz');
+        const result = document.getElementById('result');
+        const submitBtn = document.getElementById('submitBtn');
+        const startBtn = document.getElementById('startBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const prevBtn = document.getElementById('prevBtn');
+        const questionElement = document.getElementById('question');
+        const questionWrapper = document.getElementById('questionWrapper');
+        const answerOptionsWrapper = document.getElementById('options');
+        const answerOptionsInputs = document.querySelectorAll('.option');
+        const answerOptionsLabels = document.querySelectorAll('.option-label');
+
+        answerOptionsWrapper.remove(); // Remove the static elements(options) form html.
+
+        // Counters to count score and current index.
+        let score = 0;
+        let currentIndex = 0;
+
+        /**
+         * HelperFunction: Function is responsible for shuffle the array.
+         * @param {Array} array Array that is to be shuffle.
+         * @returns Returns shuffled array.
+         */
+        function shuffle(array) {
+            return array.sort(() => .5 - Math.random());
+        }
+
+        function optionsHandler(event) {
+            document.querySelector('.wrong')?.classList.remove('wrong'); // Removing previous wrong class.
+            document.querySelector('.right')?.classList.remove('right'); // Removing previous right class.
+            const answer = quizQuestions[currentIndex].answer;
+            if (event.target.value != answer) { // If clicked option is incorrect, add wrong class.
+                event.target.classList.add('wrong');
+                answeredQuestions.answer = answer;
+            } else {
+                event.target.classList.add('right'); // Adding right class.
+                score += 10; // Count the score if answer right.
+            }
+        }
+
+        /**
+         * Function is responsible for creating questions.
+         * @param {Number} currentIndex Index number to show the question or Question number. 
+         */
+        function showQuestions(currentIndex) {
+            const { question, options, answer } = quizQuestions[currentIndex];
+            document.querySelector('.wrong')?.classList.remove('wrong'); // Removing previous wrong class.
+            document.querySelector('.right')?.classList.remove('right'); // Removing previous right class.
+            questionElement.innerText = currentIndex + 1 + '. ' + question; // Add question and question number.
+            // Add options.
+            options.forEach((option, index) => {
+                answerOptionsInputs[index].name = 'js-quiz' + currentIndex; // Setting name of options input(radio buttons). 
+                answerOptionsInputs[index].value = option; // Setting value of radio buttons.
+                answerOptionsInputs[index].setAttribute('id', `js-quiz${index + 1}`); // Setting id of options input.(radio buttons)
+                answerOptionsLabels[index].innerText = option; // Adding text to label.
+                answerOptionsLabels[index].setAttribute('for', `js-quiz${index + 1}`); // Setting for attribute of label to bound it with input.
+
+                // Add click event on all option,checking answer is right or wrong and class based on answer to options.
+                answerOptionsInputs[index].removeEventListener('click', optionsHandler);
+                answerOptionsInputs[index].addEventListener('click', optionsHandler);
+                answerOptionsInputs[index].addEventListener('click', () => {
+                    answeredQuestions.question = question; // Add question to answeredQuestion object.
+                    console.log(answeredQuestions);
+                });
+            });
+
+            questionWrapper.className = 'question'; // Add class to questionWrapper.
+            questionWrapper.appendChild(answerOptionsWrapper); // Append the option to questionWrapper.
+
+
+            // If currentIndex is 0 then only show the nextBtn.
+            if (currentIndex == 0) {
+                nextBtn.classList.remove('hide'); // Show the nextBtn. 
+                prevBtn.classList.add('hide'); // Hide prevBtn.
+            }
+            // If currentIndex is 1 or less then total number question - 1 then show both next and prev button.
+            else if (currentIndex < quizQuestions.length - 1) {
+                nextBtn.classList.remove('hide'); // Show nextBtn.
+                prevBtn.classList.remove('hide'); // Show prevBtn.
+                submitBtn.classList.add('hide'); // Show submitBtn.
+            } else {
+                submitBtn.classList.remove('hide'); // Show submitBtn.
+                nextBtn.classList.add('hide'); // Hide nextBtn.
+            }
+        }
+
+        // Add click event on startBtn to start quiz.
+        startBtn.addEventListener('click', () => {
+            startBtn.classList.add('hide');
+            shuffle(quizQuestions); // Shuffle the questions. 
+            shuffle(quizQuestions[currentIndex].options); // Shuffle the options.
+            showQuestions(currentIndex); // Show questions.
+        })
+
+        // Add click event on nextBtn to show next question.
+        nextBtn.addEventListener('click', () => {
+            currentIndex++;
+            showQuestions(currentIndex); // Create the questions.
+        });
+
+        // Add click event on prevBtn to show previous question.
+        prevBtn.addEventListener('click', () => {
+            if (currentIndex > 0) {
+                currentIndex--; // Subtracting the currentIndex value if click on prevBtn.
+            }
+            showQuestions(currentIndex); // Show the questions.
+        });
+
+        // Show the score on click of submit button. 
+        submitBtn.addEventListener('click', () => {
+            quizContainer.remove(); // Remove the quiz questions. 
+            result.innerHTML = `<h2> Your Score is :${score}</h2>`; // Showing score.
+            prevBtn.classList.add('hide'); // Hide prevBtn.
+            submitBtn.classList.add('hide'); // Hide submitBtn.
+
+            setTimeout(() => {
+                let count = 10;
+                let interval = setInterval(() => {
+                    count--;
+                    if (count <= 0) {
+                        clearInterval(interval);
+                        location.reload();
+                    }
+                    result.innerHTML = `<h2>Starting quiz again in ${count} seconds...</h2>`;
+                }, 1000);
+            }, 2000);
+        });
+    </script>
+</body>
+
+</html>
